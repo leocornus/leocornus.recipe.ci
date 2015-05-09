@@ -38,7 +38,7 @@ setup(
     license='GPLv2',
 
     packages=find_packages(exclude=['ez_setup']),
-    namespace_packages=['ci', 'leocornus.recipe'],
+    namespace_packages=['leocornus', 'leocornus.recipe'],
     include_package_data = True,
 
     zip_safe=False,
