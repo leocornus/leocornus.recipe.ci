@@ -1,2 +1,4 @@
-# leocornus.recipe.ci
-A simple CI service for small an medium projects
+leocornus.recipe.ci
+===================
+
+A simple CI service for small and medium projects

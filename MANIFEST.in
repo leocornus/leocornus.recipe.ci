@@ -1,0 +1,2 @@
+include *.txt *.rst *.GPL LICENSE
+recursive-include leocornus *.rst *.py
