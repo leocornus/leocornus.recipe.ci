@@ -37,4 +37,6 @@ Steps:
 - execute the test scripton project folder.
 - analyze the result and save to wiki page.
 
+The sparse checkout is supported since Git version 1.7.
+
 .. _sparse checkout tutorial: http://jasonkarns.com/blog/subdirectory-checkouts-with-git-sparse-checkout/
