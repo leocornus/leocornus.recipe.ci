@@ -47,14 +47,15 @@ setup(
       'setuptools',
       'mwclient',
       'requests',
+      'fabric',
       'six'],
     extras_require={
       'test' : ['zope.testing'],
     },
-    tests_require = ['zope.testing', 'mwclient',
+    tests_require = ['zope.testing',
     ],
     test_suite = '%s.tests.testDoctests.test_suite' % name,
 
-    entry_points = { 'zc.buildout' : ['default = leocornus.recipe.ci:Dist',
+    entry_points = { 'zc.buildout' : ['default = leocornus.recipe.ci:CiRecipe',
                                       ] },
 )

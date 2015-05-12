@@ -81,6 +81,36 @@ Set up the ci buildout
 ----------------------
 
 Get ready a buildout to execute CI testing.
+::
+
+  >>> write(sample_buildout, 'buildout.cfg',
+  ... """
+  ... [buildout]
+  ... parts = test-ci
+  ...
+  ... [test-ci]
+  ... recipe = leocornus.recipe.ci
+  ... working-folder = %(prj_folder)s
+  ... builds-folder = %(builds_folder)s
+  ... """ % dict(prj_folder=prj_folder, builds_folder=build_folder))
+  >>> ls(sample_buildout)
+  d bin
+  - buildout.cfg
+  d develop-eggs
+  d eggs
+  d parts
+
+Execute the buildout
+--------------------
+
+run the buildout::
+
+  >>> os.chdir(sample_buildout)
+  >>> print(system(buildout))
+  Installing test-ci.
+  test-ci: Working Folder ...
+  test-ci: Builds Folder ...
+  ...
 
 Tear down
 ---------

@@ -20,9 +20,13 @@ def setUp(test):
 
     buildoutSetUp(test)
     install_develop('leocornus.recipe.ci', test)
+    install('fabric', test)
     install('mwclient', test)
     install('requests', test)
     install('six', test)
+    install('paramiko', test)
+    install('ecdsa', test)
+    install('pycrypto', test)
 
 def test_suite():
 
