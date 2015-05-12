@@ -1,4 +1,4 @@
-Here is a quick test::
+.. contents:: Table of Contents
+   :depth: 5
 
-  >>> print(1 + 2)
-  3
+work flow

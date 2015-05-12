@@ -1,0 +1,40 @@
+Release 0.0.1
+=============
+
+Options
+-------
+
+:working-folder:
+  the working folder, default is **/usr/ci/projects**.
+  the build log (.buildlog) will save here.
+
+:builds-folder:
+  where we build and test. default is **/usr/ci/builds**.
+  each build will have a subfolder in this folder.
+  for example, the build one will be in folder
+  **/usr/ci/builds/1**
+
+:save-builds:
+  how many builds we will save? default is **0 **,
+  which means do not save any build.
+
+:mwrc:
+  the resource file to connect to mediawiki site
+
+Process flow
+------------
+
+Steps:
+
+- keep a working folder, git pull to get the lastest version
+- **.buildlog** will be tracked in working folder.
+- compare git log and build log to get the commit id for 
+  next build.
+- analyze the commit to find out the project folder.
+- create the build folder in **builds-folder**.
+- clone only the project folder up to the build commit.
+  using git sparse checkout (`sparse checkout tutorial`_)
+- execute the test scripton project folder.
+- analyze the result and save to wiki page.
+
+.. _sparse checkout tutorial: http://jasonkarns.com/blog/subdirectory-checkouts-with-git-sparse-checkout/
