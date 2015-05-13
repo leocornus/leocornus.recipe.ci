@@ -39,4 +39,26 @@ Steps:
 
 The sparse checkout is supported since Git version 1.7.
 
+Global Settings
+---------------
+
+git config url::
+
+  $ git config --global url."https://".insteadof git://
+  $ git config --global http.proxy http://10.1.1.1:3128
+  $ git config --global https.proxy http://10.1.1.1:3128
+
+npm proxy::
+
+  $ npm config set proxy http://10.1.1.1:3128 --global
+  $ npm config set https-proxy http://10.1.1.1:3128 --global
+
+need create file **~/.bowerrc**, which be used for all projects.
+it will have the following content::
+
+  {
+    "proxy":"http://10.1.1.1:3128",
+    "https-proxy":"http://10.1.1.1:3128"
+  }
+
 .. _sparse checkout tutorial: http://jasonkarns.com/blog/subdirectory-checkouts-with-git-sparse-checkout/
