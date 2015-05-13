@@ -70,13 +70,14 @@ class CiRecipe:
         log.info('Repository Branch: %s' % commit_detail[1])
         log.info('Project Folder: %s' % commit_detail[2])
 
-        # analyze the next commit, to find the subfolder after 
-        # project folder.
-        # get the remote.
         # fetch the subfolder using the sparse checkout
         # execute test script.
         # preparing the test result
         # write to wiki page.
+        build_details = self.sparse_checkout(builds_folder, build_id, 
+                                             commit_id, commit_detail)
+        log.info('Get ready build folder: %s' % 
+                  build_details[0])
 
         return []
 
@@ -156,3 +157,30 @@ class CiRecipe:
         subfolder = os.path.join(folders[0], folders[1])
 
         return (remote, branch, subfolder)
+
+    # git sparse checkout.
+    def sparse_checkout(self, builds_folder, build_id, commit_id,
+                        commit_detail):
+        """sparse checkout for the given commit.
+        """
+
+        # make the build folder.
+        build_folder = os.path.join(builds_folder, str(build_id))
+        os.mkdir(build_folder)
+
+        remote, branch, subfolder = commit_detail
+
+        # git sparse checkout based on commit detail.
+        with lcd(build_folder):
+            r = local('git init', True)
+            r = local('git remote add -f %s %s' % 
+                      ('origin', remote), True)
+            r = local('git config core.sparsecheckout true', True)
+            r = local('echo %s/ >> .git/info/sparse-checkout' %
+                      subfolder, True)
+            r = local('git pull origin %s' % branch, False)
+            #r = local('ls -la %s/%s/..' % (build_folder, subfolder), 
+            #          False)
+
+        test_scripts = []
+        return (build_folder, test_scripts)
