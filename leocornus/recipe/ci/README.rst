@@ -38,6 +38,7 @@ get ready the working folder.
   ...     clone = local('git clone %s' % repo_url, True)
   [localhost] local: git clone ...
   >>> prj_folder = os.path.join(test_folder, 'angular-trac-client')
+  >>> prj_folder = os.path.join(prj_folder, 'app')
 
 Get the most recent 10 commits for testing.
 ::
@@ -105,6 +106,12 @@ run the buildout::
   test-ci: Total number of commits pending build 5
   test-ci: Next commit to build 101-...
   [localhost] local: echo 101-... > .buildlog
+  [localhost] local: git remote -v
+  [localhost] local: git branch
+  [localhost] local: git log --name-only --format=%h -1 ...
+  test-ci: Repository Remote: https://github.com/leocornus/angular-trac-client.git
+  test-ci: Repository Branch: master
+  test-ci: Project Folder: app/...
   ...
 
 Tear down
