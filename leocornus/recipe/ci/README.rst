@@ -53,29 +53,17 @@ Get the most recent 10 commits for testing.
   10
 
 Prepare a buildlog.
-We will save 5 of the commits in build log.
+The buildlog will have only one line to track the last build id and commit id.
 ::
 
-  >>> logdata = ""
-  >>> for i in range(6):
-  ...     logdata = logdata + '%s-%s\n' % (i + 1, commit_ids[9 - i])
+  >>> logdata = "%s-%s" % (100, commit_ids[5])
   >>> write(prj_folder, '.buildlog', logdata)
   >>> print(logdata)
-  1-...
-  2-...
-  3-...
-  4-...
-  5-...
-  6-...
+  100-...
 
 The file .buildlog will have the content like following::
 
-  1-00f7247
-  2-cbca861
-  3-60667b1
-  4-6df2a6e
-  5-80fc8b4
-  6-55a916b
+  100-80fc8b4
 
 Set up the ci buildout
 ----------------------
@@ -110,6 +98,13 @@ run the buildout::
   Installing test-ci.
   test-ci: Working Folder ...
   test-ci: Builds Folder ...
+  test-ci: Save Builds 0
+  test-ci: Last build id 100
+  test-ci: Last commit id ...
+  [localhost] local: git log ...
+  test-ci: Total number of commits pending build 5
+  test-ci: Next commit to build 101-...
+  [localhost] local: echo 101-... > .buildlog
   ...
 
 Tear down
