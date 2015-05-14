@@ -1,6 +1,28 @@
 Release 0.0.1
 =============
 
+Overview and Structure
+----------------------
+
+The ci recipe will watch a single git repository, which is hosting
+various of projects in subfolders.
+Each subfolder will be self surfficient project.
+It could implement different modules, packages, plugins, etc
+It could use different languages, Python, PHP, node.js, JavaScript,
+etc.
+The git repository will have the structure like the following::
+
+  projects\
+    |- python-project-1\
+         |- .cicfg
+    |- nodejs-project-2\
+         |- .cicfg
+    |- php-project-3\
+    |- python-project-4\
+    |- wordpress-plugin-6\
+    !- mediawiki-extension-1\
+    |- java-project-1\
+
 Options
 -------
 
