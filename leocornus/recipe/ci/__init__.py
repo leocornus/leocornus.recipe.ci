@@ -4,6 +4,10 @@ import os
 import logging
 from fabric.operations import local
 from fabric.context_managers import lcd
+try:
+    import ConfigParser as configparser
+except ImportError:
+    import configparser
 
 __author__ = "Sean Chen"
 __email__ = "sean.chen@leocorn.com"
@@ -74,10 +78,11 @@ class CiRecipe:
         # execute test script.
         # preparing the test result
         # write to wiki page.
-        build_details = self.sparse_checkout(builds_folder, build_id, 
-                                             commit_id, commit_detail)
-        log.info('Get ready build folder: %s' % 
-                  build_details[0])
+        build_folder = self.sparse_checkout(builds_folder, build_id, 
+                                            commit_id, commit_detail)
+        log.info('Get ready build folder: %s' % build_folder)
+        result = self.execute_tests(build_folder)
+        log.info('Result: %s' % result)
 
         return []
 
@@ -123,6 +128,7 @@ class CiRecipe:
         else:
             since = "%s.." % last_commit_id
         with lcd(working_folder):
+            pull = local('git pull', True)
             ids = local('git log %s %s .' % (format, since), True)
 
         if not ids:
@@ -172,15 +178,59 @@ class CiRecipe:
 
         # git sparse checkout based on commit detail.
         with lcd(build_folder):
-            r = local('git init', True)
-            r = local('git remote add -f %s %s' % 
+            r = local('git init >> log', True)
+            r = local('git remote add -f %s %s >> log' % 
                       ('origin', remote), True)
-            r = local('git config core.sparsecheckout true', True)
+            r = local('git config core.sparsecheckout true >> log', 
+                      True)
             r = local('echo %s/ >> .git/info/sparse-checkout' %
                       subfolder, True)
-            r = local('git pull origin %s' % branch, False)
+            r = local('git pull origin %s >> log' % branch, True)
+            r = local('git checkout %s >> log' % commit_id, True)
             #r = local('ls -la %s/%s/..' % (build_folder, subfolder), 
             #          False)
 
-        test_scripts = []
-        return (build_folder, test_scripts)
+        return os.path.join(build_folder, subfolder)
+
+    # execute tests in the given build_folder.
+    def execute_tests(self, build_folder, cicfg=".cicfg"):
+        """analyze the test scripts from file .cicfg
+        execute test scripts and return the test result.
+        If no file .cicfg present, skip the build.
+        """
+        scripts = self.get_test_scripts(build_folder, cicfg)
+        if not scripts:
+            # skip test.
+            return "No test script specified, SKIP!"
+
+        with lcd(build_folder):
+            for script in scripts:
+                # save teh result in .log file.
+                r = local('%s >> .log' % script, True)
+
+        # read the .log as result.
+        log_file = os.path.join(build_folder, '.log')
+        f = open(log_file, 'r')
+        test_results = f.read()
+
+        return test_results
+
+    # find out the test scripts.
+    def get_test_scripts(self, build_folder, cicfg):
+        """return all test scripts in a list.
+        """
+
+        cfg_file = os.path.join(build_folder, cicfg)
+        if not os.path.exists(cfg_file):
+            # try to find the config file fron user folder.
+            home_folder = os.path.expanduser("~")
+            cfg_file = os.path.join(home_folder, cicfg)
+        config = configparser.ConfigParser()
+        cfg_file = config.read(cfg_file)
+        if config.has_option('ci', 'script'):
+            scripts = config.get('ci', 'script')
+            scripts = scripts.strip().splitlines()
+        else:
+            scripts = []
+
+        return scripts

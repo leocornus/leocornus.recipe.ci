@@ -53,7 +53,9 @@ Get the most recent 10 commits for testing.
   >>> len(commit_ids)
   10
 
-Prepare a buildlog.
+Prepare a buildlog
+~~~~~~~~~~~~~~~~~~
+
 The buildlog will have only one line to track the last build id and commit id.
 ::
 
@@ -65,6 +67,27 @@ The buildlog will have only one line to track the last build id and commit id.
 The file .buildlog will have the content like following::
 
   100-80fc8b4
+
+Prepare a cicfg
+~~~~~~~~~~~~~~~
+
+the **.cicfg** will be searched from the following location:
+
+- project folder, while user could customize it by project.
+- user's home folder **~/.cicfg**, it will be override by the 
+  same file in project folder.
+
+We will use the .cicfg file in suer's home folder for testing.
+::
+
+  >>> home_folder = os.path.expanduser("~")
+  >>> print(home_folder)
+  >>> ci_scripts = """
+  ... [ci]
+  ... script:
+  ...   ls -la
+  ... """
+  >>> write(home_folder, '.cicfg', ci_scripts)
 
 Set up the ci buildout
 ----------------------
@@ -120,3 +143,9 @@ Tear down
 ---------
 
 The **buildoutTearDown** should clean up temp directories.
+
+clean the .cicfg file.
+::
+
+  >>> remove = local('rm -rf %s' % cicfg, True)
+  [localhost] local: rm -rf ...
