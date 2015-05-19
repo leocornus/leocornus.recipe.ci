@@ -206,7 +206,7 @@ class CiRecipe:
         with lcd(build_folder):
             for script in scripts:
                 # save teh result in .log file.
-                r = local('%s >> .log' % script, True)
+                r = local('%s >> .log' % script, False)
 
         # read the .log as result.
         log_file = os.path.join(build_folder, '.log')
