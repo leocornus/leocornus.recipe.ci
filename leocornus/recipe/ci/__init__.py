@@ -174,6 +174,19 @@ class CiRecipe:
 
         return (remote, branch, subfolder)
 
+    def call_cmd(self, cmd):
+        """utility method to log and execute a script
+        """
+        # write to build log by using echo.
+        check_call(['echo', cmd], stdout=self.build_log,
+                   stderr=self.build_log)
+        check_call(['echo', '---------------'], stdout=self.build_log,
+                   stderr=self.build_log)
+        check_call(['echo', ''], stdout=self.build_log,
+                   stderr=self.build_log)
+        check_call(shlex.split(cmd), stdout=self.build_log,
+                   stderr=self.build_log)
+
     # git sparse checkout.
     def sparse_checkout(self, builds_folder, build_id, commit_id,
                         commit_detail):
@@ -190,37 +203,26 @@ class CiRecipe:
         # git sparse checkout based on commit detail.
         os.chdir(build_folder)
         try:
-            self.build_log.writelines(['git init', '\n'])
-            check_call(['git', 'init'], stdout=self.build_log,
-                       stderr=self.build_log)
+            self.call_cmd('git init')
 
             cmd = 'git remote add -f %s %s' % ('origin', remote)
-            self.build_log.writelines([cmd, '\n'])
-            check_call(shlex.split(cmd), stdout=self.build_log,
-                       stderr=self.build_log)
+            self.call_cmd(cmd)
 
             cmd = 'git config core.sparsecheckout true'
-            check_call(shlex.split(cmd), stdout=self.build_log,
-                       stderr=self.build_log)
+            self.call_cmd(cmd)
         
             cmd = 'echo %s/ >> .git/info/sparse-checkout' % subfolder
-            self.build_log.writelines([cmd, '\n'])
+            #self.build_log.writelines([cmd, '\n'])
             r = local(cmd, True)
 
             cmd = 'git pull origin %s' % branch
-            self.build_log.writelines([cmd, '\n'])
-            check_call(shlex.split(cmd), stdout=self.build_log,
-                       stderr=self.build_log)
+            self.call_cmd(cmd)
 
             cmd = 'git checkout %s' % commit_id
-            self.build_log.writelines([cmd, '\n'])
-            check_call(shlex.split(cmd), stdout=self.build_log,
-                       stderr=self.build_log)
+            self.call_cmd(cmd)
 
             cmd = 'git config url."https://".insteadof git://'
-            self.build_log.writelines([cmd, '\n'])
-            check_call(shlex.split(cmd), stdout=self.build_log,
-                       stderr=self.build_log)
+            self.call_cmd(cmd)
         except CalledProcessError as cpe:
             returncode = cpe.returncode
 
@@ -232,6 +234,8 @@ class CiRecipe:
         execute test scripts and return the test result.
         If no file .cicfg present, skip the build.
         """
+
+        log = logging.getLogger(self.name)
         scripts = self.get_test_scripts(build_folder, cicfg)
         if not scripts:
             # skip test.
@@ -246,10 +250,8 @@ class CiRecipe:
             for script in scripts:
                 # save all results in .log file.
                 #r = local('%s >> .log' % script, False)
-                self.build_log.writelines([script])
-                check_call(shlex.split(script), 
-                           stderr=self.build_log,
-                           stdout=self.build_log)
+                log.info('Execute test script: %s' % script)
+                self.call_cmd(script)
         except CalledProcessError as cpe:
             returncode = cpe.returncode
 

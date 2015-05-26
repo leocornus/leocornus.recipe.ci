@@ -137,9 +137,11 @@ run the buildout::
   test-ci: Repository Branch: master
   test-ci: Project Folder: projects/...
   test-ci: Get ready build folder: .../builds/101/...
+  test-ci: Execute test script: npm test
   test-ci: Result: Build success!
   ...
 
+buildout won't store those Fabric local output.
 ::
 
   [localhost] local: git pull
@@ -157,6 +159,18 @@ run the buildout::
   test-ci: Get ready build folder: .../builds/101/...
   test-ci: Result: Build success!
   ...
+
+explore the build log
+---------------------
+
+Read the build log.
+::
+
+  >>> blog = open('%s/101.log' % build_folder)
+  >>> logs = blog.read()
+  >>> #print(logs)
+  >>> 'git init' in logs
+  True
 
 Tear down
 ---------
