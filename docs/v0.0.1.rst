@@ -1,6 +1,14 @@
 Release 0.0.1
 =============
 
+The first release, we will have the following features ready:
+
+- ability to find new commit from the repository
+- be able to execute the unit test cases automatically
+- allow user to customize the test scripts.
+- ability to store the test result locally, in builds folder
+- ability to save the test result on wiki page.
+
 Overview and Structure
 ----------------------
 
@@ -83,4 +91,26 @@ it will have the following content::
     "https-proxy":"http://10.1.1.1:3128"
   }
 
-.. _sparse checkout tutorial: http://jasonkarns.com/blog/subdirectory-checkouts-with-git-sparse-checkout/
+Code Examples
+-------------
+
+quick memo for using fabric.local to do git sparse checkout.
+::
+
+  # git sparse checkout based on commit detail.
+  with lcd(build_folder):
+      r = local('git init >> log', True)
+      r = local('git remote add -f %s %s >> log' % 
+                ('origin', remote), True)
+      r = local('git config core.sparsecheckout true >> log', 
+                True)
+      r = local('echo %s/ >> .git/info/sparse-checkout' %
+                subfolder, True)
+      r = local('git pull origin %s >> log' % branch, True)
+      r = local('git checkout %s >> log' % commit_id, True)
+      r = local('git config url."https://".insteadof git://', 
+                True)
+      #r = local('ls -la %s/%s/..' % (build_folder, subfolder), 
+          #          False)
+  
+  .. _sparse checkout tutorial: http://jasonkarns.com/blog/subdirectory-checkouts-with-git-sparse-checkout/
