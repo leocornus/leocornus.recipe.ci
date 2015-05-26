@@ -2,6 +2,9 @@
 
 import os
 import logging
+from subprocess import check_call
+from subprocess import CalledProcessError
+import shlex
 from fabric.operations import local
 from fabric.context_managers import lcd
 try:
@@ -74,15 +77,22 @@ class CiRecipe:
         log.info('Repository Branch: %s' % commit_detail[1])
         log.info('Project Folder: %s' % commit_detail[2])
 
+        # preparing a log file to track the whole build process from
+        # this step.
+        build_log_file = os.path.join(builds_folder, 
+                                      '%s.log' % build_id)
+        self.build_log = open(build_log_file, 'w')
+
         # fetch the subfolder using the sparse checkout
         # execute test script.
         # preparing the test result
         # write to wiki page.
-        build_folder = self.sparse_checkout(builds_folder, build_id, 
+        build_folder, returncode = self.sparse_checkout(builds_folder, build_id, 
                                             commit_id, commit_detail)
         log.info('Get ready build folder: %s' % build_folder)
         result = self.execute_tests(build_folder)
         log.info('Result: %s' % result)
+        self.build_log.close()
 
         return []
 
@@ -90,7 +100,7 @@ class CiRecipe:
     def update(self):
         """Will be executed when update...
         """
-        pass
+        self.install()
 
     # return the build log
     def get_buildlog(self, working_folder):
@@ -175,22 +185,46 @@ class CiRecipe:
         os.mkdir(build_folder)
 
         remote, branch, subfolder = commit_detail
+        returncode = 0
 
         # git sparse checkout based on commit detail.
-        with lcd(build_folder):
-            r = local('git init >> log', True)
-            r = local('git remote add -f %s %s >> log' % 
-                      ('origin', remote), True)
-            r = local('git config core.sparsecheckout true >> log', 
-                      True)
-            r = local('echo %s/ >> .git/info/sparse-checkout' %
-                      subfolder, True)
-            r = local('git pull origin %s >> log' % branch, True)
-            r = local('git checkout %s >> log' % commit_id, True)
-            #r = local('ls -la %s/%s/..' % (build_folder, subfolder), 
-            #          False)
+        os.chdir(build_folder)
+        try:
+            self.build_log.writelines(['git init', '\n'])
+            check_call(['git', 'init'], stdout=self.build_log,
+                       stderr=self.build_log)
 
-        return os.path.join(build_folder, subfolder)
+            cmd = 'git remote add -f %s %s' % ('origin', remote)
+            self.build_log.writelines([cmd, '\n'])
+            check_call(shlex.split(cmd), stdout=self.build_log,
+                       stderr=self.build_log)
+
+            cmd = 'git config core.sparsecheckout true'
+            check_call(shlex.split(cmd), stdout=self.build_log,
+                       stderr=self.build_log)
+        
+            cmd = 'echo %s/ >> .git/info/sparse-checkout' % subfolder
+            self.build_log.writelines([cmd, '\n'])
+            r = local(cmd, True)
+
+            cmd = 'git pull origin %s' % branch
+            self.build_log.writelines([cmd, '\n'])
+            check_call(shlex.split(cmd), stdout=self.build_log,
+                       stderr=self.build_log)
+
+            cmd = 'git checkout %s' % commit_id
+            self.build_log.writelines([cmd, '\n'])
+            check_call(shlex.split(cmd), stdout=self.build_log,
+                       stderr=self.build_log)
+
+            cmd = 'git config url."https://".insteadof git://'
+            self.build_log.writelines([cmd, '\n'])
+            check_call(shlex.split(cmd), stdout=self.build_log,
+                       stderr=self.build_log)
+        except CalledProcessError as cpe:
+            returncode = cpe.returncode
+
+        return (os.path.join(build_folder, subfolder), returncode)
 
     # execute tests in the given build_folder.
     def execute_tests(self, build_folder, cicfg=".cicfg"):
@@ -203,15 +237,26 @@ class CiRecipe:
             # skip test.
             return "No test script specified, SKIP!"
 
-        with lcd(build_folder):
-            for script in scripts:
-                # save teh result in .log file.
-                r = local('%s >> .log' % script, False)
+        returncode = 0
 
-        # read the .log as result.
-        log_file = os.path.join(build_folder, '.log')
-        f = open(log_file, 'r')
-        test_results = f.read()
+        # TODO: update to return fail or success only,
+        # based on return code!
+        os.chdir(build_folder)
+        try:
+            for script in scripts:
+                # save all results in .log file.
+                #r = local('%s >> .log' % script, False)
+                self.build_log.writelines([script])
+                check_call(shlex.split(script), 
+                           stderr=self.build_log,
+                           stdout=self.build_log)
+        except CalledProcessError as cpe:
+            returncode = cpe.returncode
+
+        if(returncode > 0):
+            test_results = 'Build failed!'
+        else:
+            test_results = 'Build success!'
 
         return test_results
 
