@@ -174,14 +174,17 @@ class CiRecipe:
 
         return (remote, branch, subfolder)
 
-    def call_cmd(self, cmd):
+    def call_cmd(self, cmd, separator='-'):
         """utility method to log and execute a script
         """
         # write to build log by using echo.
-        check_call(['echo', cmd], stdout=self.build_log,
+        check_call(['echo', ''], stdout=self.build_log,
                    stderr=self.build_log)
-        check_call(['echo', '---------------'], stdout=self.build_log,
-                   stderr=self.build_log)
+        check_call(['echo', cmd], 
+                   stdout=self.build_log, stderr=self.build_log)
+        line = separator * len(cmd)
+        check_call(['echo', line],
+                   stdout=self.build_log, stderr=self.build_log)
         check_call(['echo', ''], stdout=self.build_log,
                    stderr=self.build_log)
         check_call(shlex.split(cmd), stdout=self.build_log,
