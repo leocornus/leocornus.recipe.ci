@@ -139,6 +139,7 @@ run the buildout::
   test-ci: Get ready build folder: .../builds/101/...
   test-ci: Execute test script: npm test
   test-ci: Result: Build success!
+  test-ci: Convert build log to HTML.
   ...
 
 buildout won't store those Fabric local output.
@@ -166,10 +167,23 @@ explore the build log
 Read the build log.
 ::
 
-  >>> blog = open('%s/101.log' % build_folder)
+  >>> log_file = '%s/101.log' % build_folder
+  >>> blog = open(log_file)
   >>> logs = blog.read()
   >>> #print(logs)
   >>> 'git init' in logs
+  True
+
+quick test for converting build log
+::
+
+  >>> from subprocess import Popen
+  >>> from subprocess import check_output
+  >>> from subprocess import PIPE
+  >>> cat = Popen(['cat', log_file], stdout=PIPE)
+  >>> html_log = check_output(['aha', '-b', '--no-header'], stdin=cat.stdout)
+  >>> #print(html_log)
+  >>> 'color:lime' in html_log
   True
 
 Tear down

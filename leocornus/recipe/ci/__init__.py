@@ -3,6 +3,9 @@
 import os
 import logging
 from subprocess import check_call
+from subprocess import Popen
+from subprocess import PIPE
+from subprocess import check_output
 from subprocess import CalledProcessError
 import shlex
 from fabric.operations import local
@@ -85,14 +88,22 @@ class CiRecipe:
 
         # fetch the subfolder using the sparse checkout
         # execute test script.
-        # preparing the test result
-        # write to wiki page.
         build_folder, returncode = self.sparse_checkout(builds_folder, build_id, 
                                             commit_id, commit_detail)
         log.info('Get ready build folder: %s' % build_folder)
         result = self.execute_tests(build_folder)
         log.info('Result: %s' % result)
         self.build_log.close()
+
+        # convert build log to html  
+        # This depends on aha
+        cat = Popen(['cat', build_log_file], stdout=PIPE)
+        html_log = check_output(['aha', '-b', '--no-header'], stdin=cat.stdout)
+        # replace white space to &nbsp; to keep the format on wiki page
+        html_log = html_log.replace('  ', '&nbsp;&nbsp;')
+        log.info('Convert build log to HTML.')
+
+        # save the html as a wiki page
 
         return []
 
