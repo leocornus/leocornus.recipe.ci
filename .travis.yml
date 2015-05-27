@@ -5,15 +5,14 @@ python:
 #  - 3.3
 
 before_script:
-  - sudo apt-get install -y aha
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
   - sleep 1 # give server time to start
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
-  - python bootstrap.py; 
-  - bin/buildout
+  - ython bootstrap.py; 
+  - sudo bin/buildout
 
 
 # command to run tests, e.g. python setup.py test
