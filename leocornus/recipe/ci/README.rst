@@ -26,7 +26,8 @@ We should have the absolute path for both.
   >>> test_folder = tmpdir('test')
   >>> build_folder = tmpdir('builds')
 
-We will use angular-trac-client repository for testing.
+We will use the leocornus demo repository 
+**leocornus-ci-projects** for testing.
 ::
 
   >>> repo_url = 'https://github.com/leocornus/leocornus-ci-projects.git'
@@ -182,7 +183,7 @@ quick test for converting build log
   >>> from subprocess import PIPE
   >>> cat = Popen(['cat', log_file], stdout=PIPE)
   >>> html_log = check_output(['aha', '-b', '--no-header'], stdin=cat.stdout)
-  >>> #print(html_log)
+  >>> print(html_log)
   >>> 'color:lime' in html_log
   True
 
