@@ -182,8 +182,8 @@ quick test for converting build log
   >>> from subprocess import check_output
   >>> from subprocess import PIPE
   >>> cat = Popen(['cat', log_file], stdout=PIPE)
-  >>> html_log = check_output(['aha', '-b', '--no-header'], stdin=cat.stdout)
-  >>> print(html_log)
+  >>> html_log = check_output(['aha', '-b'], stdin=cat.stdout)
+  >>> #print(html_log)
   >>> 'color:lime' in html_log
   True
 
