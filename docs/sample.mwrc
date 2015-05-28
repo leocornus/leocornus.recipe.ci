@@ -1,0 +1,15 @@
+[mwclient]
+update_wiki = yes
+host = mediawiki.site.com
+path = /wiki/
+username = seanchen
+password = password
+
+[wiki page]
+title: Project:CI/Builds/%(build_id)s-%(commit_id)s
+content: 
+  %(build_status)s
+  ===Commit===
+  <div style="white-space: pre-wrap; background: grey; font-family: monospace,Courier;">%(commit_message)s</div>
+  ===Build Log===
+  <div style="white-space: pre-wrap; background: black; color: white; font-family: monospace,Courier;">%(build_log)s</div>
