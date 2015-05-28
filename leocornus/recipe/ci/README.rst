@@ -96,6 +96,35 @@ We will not test this for now.
   ...... """
   ...>>> write(home_folder, '.cicfg', ci_scripts)
 
+Prepare a mwrc file
+~~~~~~~~~~~~~~~~~~~
+
+Get ready a sample mwrc file for testing.
+We will save the mwrc file in working folder.
+::
+
+  >>> rc_file = os.path.join(prj_folder, '.mwrc')
+  >>> mwrc = open(rc_file, 'w')
+  >>> cfg_data = """
+  ... [mwclient]
+  ... update_wiki = no
+  ... host = mediawiki.site.com
+  ... path = /wiki/
+  ... username = seanchen
+  ... password = password
+  ... 
+  ... [wiki page]
+  ... title: Project:CI/Builds/%(build_id)s-%(commit_id)s
+  ... content: 
+  ...   %(build_status)s
+  ...   ===Commit===
+  ...   <div>%(commit_message)s</div>
+  ...   ===Build Log===
+  ...   <div>%(build_log)s</div>
+  ... """
+  >>> mwrc.write(cfg_data)
+  >>> mwrc.close()
+
 Set up the ci buildout
 ----------------------
 
@@ -111,7 +140,9 @@ Get ready a buildout to execute CI testing.
   ... recipe = leocornus.recipe.ci
   ... working-folder = %(prj_folder)s
   ... builds-folder = %(builds_folder)s
-  ... """ % dict(prj_folder=prj_folder, builds_folder=build_folder))
+  ... wiki-rc-file = %(rc_file)s
+  ... """ % dict(prj_folder=prj_folder, builds_folder=build_folder,
+  ...            rc_file=rc_file))
   >>> ls(sample_buildout)
   d bin
   - buildout.cfg
@@ -141,6 +172,8 @@ run the buildout::
   test-ci: Execute test script: npm test
   test-ci: Result: Build success!
   test-ci: Convert build log to HTML.
+  test-ci: Wiki page title: Project:CI/Builds/101-...
+  test-ci: Wiki update is OFF
   ...
 
 buildout won't store those Fabric local output.

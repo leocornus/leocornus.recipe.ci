@@ -10,6 +10,7 @@ from subprocess import CalledProcessError
 import shlex
 from fabric.operations import local
 from fabric.context_managers import lcd
+import mwclient
 try:
     import ConfigParser as configparser
 except ImportError:
@@ -37,6 +38,7 @@ class CiRecipe:
         self.options.setdefault('builds-folder',
                                 '/usr/ci/builds')
         self.options.setdefault('save-builds', '0')
+        self.options.setdefault('wiki-rc-file', '~/.mwrc')
 
     # install method.
     def install(self):
@@ -46,6 +48,7 @@ class CiRecipe:
         log = logging.getLogger(self.name)
         working_folder = self.options.get('working-folder')
         builds_folder = self.options.get('builds-folder')
+        mwrc = self.options.get('wiki-rc-file')
         save_builds = self.options.get('save-builds')
         log.info("Working Folder %s" % working_folder)
         log.info("Builds Folder %s" % builds_folder)
@@ -104,6 +107,14 @@ class CiRecipe:
         log.info('Convert build log to HTML.')
 
         # save the html as a wiki page
+        page_values = {
+          'commit_id' : commit_id,
+          'commit_message' : commit_id,
+          'build_id' : build_id,
+          'build_status' : result,
+          'build_log' : html_log
+        }
+        self.save_to_wiki(mwrc, page_values)
 
         return []
 
@@ -295,3 +306,48 @@ class CiRecipe:
             scripts = []
 
         return scripts
+
+    # save to wiki
+    def save_to_wiki(self, mwrc, values):
+        """save build log as a wiki page
+        """
+
+        log = logging.getLogger(self.name)
+        if os.path.exists(mwrc):
+            # read wiki site information from the resource file
+            rc = configparser.ConfigParser()
+            file_name = rc.read(mwrc)
+            mw_info = dict(rc.items('mwclient'))
+            # set raw to True for page fields
+            mw_page = dict(rc.items('wiki page', True))
+
+            # get ready the wiki page
+            title = mw_page['title'] % values
+            content = mw_page['content'] % values
+            #comment = mw_page['comment'] % values
+            comment = ""
+            log.info('Wiki page title: %s' % title)
+
+            # save to wiki site
+            if not mw_info.has_key('update_wiki'):
+                # update_wiki not set, give the default value.
+                mw_info['update_wiki'] = 'no'
+
+            # 
+            if mw_info['update_wiki'] == 'yes':
+                # try to create the mwclient site instance.
+                site = mwclient.Site(mw_info['host'], 
+                                     path=mw_info['path'])
+                site.login(mw_info['username'], 
+                           mw_info['password'])
+
+                # create new page. 
+                thepage = site.Pages[title]
+                ret = thepage.save(content, comment)
+                # logging
+                log.info('Wiki update: %(result)s' % ret)
+            else:
+                # logging
+                log.info('Wiki update is OFF')
+        else:
+            log.info('No mwrc file set up, skip wiki update!')
