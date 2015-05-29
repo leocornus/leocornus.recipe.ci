@@ -105,6 +105,8 @@ class CiRecipe:
         # replace white space to &nbsp; to keep the format on wiki page
         html_log = html_log.replace('  ', '&nbsp;&nbsp;')
         log.info('Convert build log to HTML.')
+        log_file = open(build_log_file)
+        html_log = log_file.read()
 
         # save the html as a wiki page
         page_values = {
@@ -196,21 +198,23 @@ class CiRecipe:
 
         return (remote, branch, subfolder)
 
-    def call_cmd(self, cmd, separator='-'):
+    def call_cmd(self, cmd, separator='-', logging=True):
         """utility method to log and execute a script
         """
+        if(logging):
+            out = self.build_log
+            err = self.build_log
+        else:
+            out = None
+            err = None
+
         # write to build log by using echo.
-        check_call(['echo', ''], stdout=self.build_log,
-                   stderr=self.build_log)
-        check_call(['echo', cmd], 
-                   stdout=self.build_log, stderr=self.build_log)
+        check_call(['echo', ''], stdout=out, stderr=err)
+        check_call(['echo', cmd], stdout=out, stderr=err)
         line = separator * len(cmd)
-        check_call(['echo', line],
-                   stdout=self.build_log, stderr=self.build_log)
-        check_call(['echo', ''], stdout=self.build_log,
-                   stderr=self.build_log)
-        check_call(shlex.split(cmd), stdout=self.build_log,
-                   stderr=self.build_log)
+        check_call(['echo', line], stdout=out, stderr=err)
+        check_call(['echo', ''], stdout=out, stderr=err)
+        check_call(shlex.split(cmd), stdout=out, stderr=err)
 
     # git sparse checkout.
     def sparse_checkout(self, builds_folder, build_id, commit_id,
@@ -228,26 +232,26 @@ class CiRecipe:
         # git sparse checkout based on commit detail.
         os.chdir(build_folder)
         try:
-            self.call_cmd('git init')
+            self.call_cmd('git init', logging=True)
 
             cmd = 'git remote add -f %s %s' % ('origin', remote)
-            self.call_cmd(cmd)
+            self.call_cmd(cmd, logging=False)
 
             cmd = 'git config core.sparsecheckout true'
-            self.call_cmd(cmd)
+            self.call_cmd(cmd, logging=False)
         
             cmd = 'echo %s/ >> .git/info/sparse-checkout' % subfolder
             #self.build_log.writelines([cmd, '\n'])
             r = local(cmd, True)
 
             cmd = 'git pull origin %s' % branch
-            self.call_cmd(cmd)
+            self.call_cmd(cmd, logging=False)
 
             cmd = 'git checkout %s' % commit_id
-            self.call_cmd(cmd)
+            self.call_cmd(cmd, logging=True)
 
             cmd = 'git config url."https://".insteadof git://'
-            self.call_cmd(cmd)
+            self.call_cmd(cmd, logging=False)
         except CalledProcessError as cpe:
             returncode = cpe.returncode
 
