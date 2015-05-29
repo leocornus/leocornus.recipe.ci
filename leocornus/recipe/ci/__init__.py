@@ -111,7 +111,7 @@ class CiRecipe:
         # save the html as a wiki page
         page_values = {
           'commit_id' : commit_id,
-          'commit_message' : commit_id,
+          'commit_message' : commit_detail[3],
           'build_id' : build_id,
           'build_status' : result,
           'build_log' : html_log
@@ -186,6 +186,8 @@ class CiRecipe:
             branch = local('git branch', True)
             changeset = local('git log %s %s' % 
                               (log_option, commit_id), True)
+            name_status = local('git log --name-status -1 %s' %
+                                commit_id, True)
         # get the remote url:
         remote = remote.splitlines()[0]
         remote = remote.strip().split()[1]
@@ -196,7 +198,7 @@ class CiRecipe:
         folders = change_file.split(os.sep)
         subfolder = os.path.join(folders[0], folders[1])
 
-        return (remote, branch, subfolder)
+        return (remote, branch, subfolder, name_status)
 
     def call_cmd(self, cmd, separator='-', logging=True):
         """utility method to log and execute a script
@@ -226,7 +228,7 @@ class CiRecipe:
         build_folder = os.path.join(builds_folder, str(build_id))
         os.mkdir(build_folder)
 
-        remote, branch, subfolder = commit_detail
+        remote, branch, subfolder, name_status = commit_detail
         returncode = 0
 
         # git sparse checkout based on commit detail.
