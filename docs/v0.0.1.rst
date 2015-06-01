@@ -31,6 +31,8 @@ The git repository will have the structure like the following::
     !- mediawiki-extension-1\
     |- java-project-1\
 
+The repository `leocornus-ci-projects <https://github.com/leocornus/leocornus-ci-projects>`_ has sample projects.
+
 Options
 -------
 
@@ -111,6 +113,6 @@ quick memo for using fabric.local to do git sparse checkout.
       r = local('git config url."https://".insteadof git://', 
                 True)
       #r = local('ls -la %s/%s/..' % (build_folder, subfolder), 
-          #          False)
+      #          False)
   
-  .. _sparse checkout tutorial: http://jasonkarns.com/blog/subdirectory-checkouts-with-git-sparse-checkout/
+.. _sparse checkout tutorial: http://jasonkarns.com/blog/subdirectory-checkouts-with-git-sparse-checkout/
