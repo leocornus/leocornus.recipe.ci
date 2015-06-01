@@ -94,7 +94,7 @@ class CiRecipe:
         build_folder, returncode = self.sparse_checkout(builds_folder, build_id, 
                                             commit_id, commit_detail)
         log.info('Get ready build folder: %s' % build_folder)
-        result = self.execute_tests(build_folder)
+        returncode, result = self.execute_tests(build_folder)
         log.info('Result: %s' % result)
         self.build_log.close()
 
@@ -291,7 +291,7 @@ class CiRecipe:
         else:
             test_results = 'Build success!'
 
-        return test_results
+        return (returncode, test_results)
 
     # find out the test scripts.
     def get_test_scripts(self, build_folder, cicfg):
@@ -330,8 +330,7 @@ class CiRecipe:
             # get ready the wiki page
             title = mw_page['title'] % values
             content = mw_page['content'] % values
-            #comment = mw_page['comment'] % values
-            comment = ""
+            comment = mw_page['comment'] % values
             log.info('Wiki page title: %s' % title)
 
             # save to wiki site

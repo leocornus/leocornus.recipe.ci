@@ -115,6 +115,7 @@ We will save the mwrc file in working folder.
   ... 
   ... [wiki page]
   ... title: Project:CI/Builds/%(build_id)s-%(commit_id)s
+  ... comment: build log for commit %(commit_id)s
   ... content: 
   ...   %(build_status)s
   ...   ===Commit===
