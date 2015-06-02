@@ -15,8 +15,9 @@ Preparing the case
 Import modules.
 ::
 
-  >>> from fabric.operations import local
-  >>> from fabric.context_managers import lcd
+  >>> import pexpect
+  >>> import shlex
+  >>> from subprocess import check_output
 
 Create the working folder and the build folder.
 We should have the absolute path for both.
@@ -35,20 +36,18 @@ We will use the leocornus demo repository
 get ready the working folder.
 ::
 
-  >>> with lcd(test_folder):
-  ...     clone = local('git clone %s' % repo_url, True)
-  [localhost] local: git clone ...
+  >>> os.chdir(test_folder)
+  >>> clone = pexpect.run('git clone %s' % repo_url)
   >>> prj_folder = os.path.join(test_folder, 'leocornus-ci-projects')
 
 Get the most recent 5 commits for testing.
 ::
 
-  >>> with lcd(prj_folder):
-  ...     local('git pull', True)
-  ...     ids = local('git log --format=%h -5 .', True)
-  [localhost] local: git pull
-  'Already up-to-date.'
-  [localhost] local: git log ...
+  >>> os.chdir(prj_folder)
+  >>> pull = pexpect.run('git pull')
+  >>> git_log = 'git log --format=%h -5 .'
+  >>> ids = check_output(shlex.split(git_log))
+  >>> #print(ids)
   >>> commit_ids = ids.splitlines()
   >>> len(commit_ids)
   5

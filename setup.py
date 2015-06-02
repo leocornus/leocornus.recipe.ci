@@ -47,7 +47,7 @@ setup(
       'setuptools',
       'mwclient',
       'requests',
-      'fabric',
+      'pexpect',
       'six'],
     extras_require={
       'test' : ['zope.testing'],

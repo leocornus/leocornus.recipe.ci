@@ -8,8 +8,7 @@ from subprocess import PIPE
 from subprocess import check_output
 from subprocess import CalledProcessError
 import shlex
-from fabric.operations import local
-from fabric.context_managers import lcd
+import pexpect
 import mwclient
 try:
     import ConfigParser as configparser
@@ -145,9 +144,10 @@ class CiRecipe:
         """update build log with new build id and commit id.
         """
 
-        with lcd(working_fodler):
-            log = local('echo %s-%s > .buildlog' % 
-                        (build_id, commit_id), True)
+        log_file = os.path.join(working_fodler, '.buildlog')
+        log = open(log_file, 'w')
+        log.write('%s-%s' % (build_id, commit_id))
+        log.close()
 
     # return the next commit for build.
     def get_next_commit_id(self, working_folder, last_commit_id):
@@ -161,9 +161,10 @@ class CiRecipe:
             since = ""
         else:
             since = "%s.." % last_commit_id
-        with lcd(working_folder):
-            pull = local('git pull', True)
-            ids = local('git log %s %s .' % (format, since), True)
+        os.chdir(working_folder)
+        pull = pexpect.run('git pull')
+        git_log = 'git log %s %s .' % (format, since)
+        ids = check_output(shlex.split(git_log))
 
         if not ids:
             # now new commit found.
@@ -181,13 +182,16 @@ class CiRecipe:
         """
 
         log_option = '--name-only --format=%h -1'
-        with lcd(working_folder):
-            remote = local('git remote -v', True)
-            branch = local('git branch', True)
-            changeset = local('git log %s %s' % 
-                              (log_option, commit_id), True)
-            name_status = local('git log --name-status -1 %s' %
-                                commit_id, True)
+        os.chdir(working_folder)
+        remote = pexpect.run('git remote -v')
+        branch = pexpect.run('git branch')
+        git_log = 'git log %s %s' % (log_option, commit_id)
+        git_log = ['git', 'log', '--name-only', '--format=%h', 
+                   '-1', "%s" % commit_id]
+        changeset = check_output(git_log)
+        name_status = pexpect.run('git log --name-status -l %s' %
+                                  commit_id)
+
         # get the remote url:
         remote = remote.splitlines()[0]
         remote = remote.strip().split()[1]
@@ -201,6 +205,25 @@ class CiRecipe:
         return (remote, branch, subfolder, name_status)
 
     def call_cmd(self, cmd, separator='-', logging=True):
+        """utility method to log and execute a script
+        """
+
+        (output, code) = pexpect.run(cmd, withexitstatus=True, 
+                                     timeout=300)
+        if(logging):
+            line = separator * len(cmd)
+            data = """
+            %s
+            %s
+
+            """ % (cmd, line)
+            self.build_log.write(data)
+            self.build_log.write(output)
+
+        # return the exit code.
+        return code
+
+    def check_call_cmd(self, cmd, separator='-', logging=True):
         """utility method to log and execute a script
         """
         if(logging):
@@ -242,9 +265,12 @@ class CiRecipe:
             cmd = 'git config core.sparsecheckout true'
             self.call_cmd(cmd, logging=False)
         
-            cmd = 'echo %s/ >> .git/info/sparse-checkout' % subfolder
+            #cmd = 'echo %s/ >> .git/info/sparse-checkout' % subfolder
             #self.build_log.writelines([cmd, '\n'])
-            r = local(cmd, True)
+            #r = local(cmd, True)
+            info = open('.git/info/sparse-checkout', 'w')
+            info.write('%s/' % subfolder)
+            info.close()
 
             cmd = 'git pull origin %s' % branch
             self.call_cmd(cmd, logging=False)
@@ -282,7 +308,7 @@ class CiRecipe:
                 # save all results in .log file.
                 #r = local('%s >> .log' % script, False)
                 log.info('Execute test script: %s' % script)
-                self.call_cmd(script)
+                returncode = self.call_cmd(script)
         except CalledProcessError as cpe:
             returncode = cpe.returncode
 

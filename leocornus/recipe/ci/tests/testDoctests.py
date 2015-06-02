@@ -20,7 +20,7 @@ def setUp(test):
 
     buildoutSetUp(test)
     install_develop('leocornus.recipe.ci', test)
-    install('fabric', test)
+    install('pexpect', test)
     install('mwclient', test)
     install('requests', test)
     install('six', test)
