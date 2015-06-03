@@ -208,8 +208,6 @@ class CiRecipe:
         """utility method to log and execute a script
         """
 
-        (output, code) = pexpect.run(cmd, withexitstatus=True, 
-                                     timeout=300)
         if(logging):
             line = separator * len(cmd)
             data = """
@@ -217,8 +215,15 @@ class CiRecipe:
             %s
 
             """ % (cmd, line)
-            self.build_log.write(data)
-            self.build_log.write(output)
+            logfile = self.build_log
+            #self.build_log.write(data)
+            #self.build_log.write(output)
+        else: 
+            logfile = None
+
+        (output, code) = pexpect.run(cmd, withexitstatus=True, 
+                                     logfile=logfile,
+                                     timeout=300)
 
         # return the exit code.
         return code
@@ -240,6 +245,9 @@ class CiRecipe:
         check_call(['echo', line], stdout=out, stderr=err)
         check_call(['echo', ''], stdout=out, stderr=err)
         check_call(shlex.split(cmd), stdout=out, stderr=err)
+
+        # asume everything goes well.
+        return 0
 
     # git sparse checkout.
     def sparse_checkout(self, builds_folder, build_id, commit_id,
