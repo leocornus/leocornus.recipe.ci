@@ -24,7 +24,6 @@ def setUp(test):
     install('mwclient', test)
     install('requests', test)
     install('six', test)
-    install('paramiko', test)
     install('ecdsa', test)
     install('pycrypto', test)
 
