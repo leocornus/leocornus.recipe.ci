@@ -24,8 +24,6 @@ def setUp(test):
     install('mwclient', test)
     install('requests', test)
     install('six', test)
-    install('ecdsa', test)
-    install('pycrypto', test)
 
 def test_suite():
 
