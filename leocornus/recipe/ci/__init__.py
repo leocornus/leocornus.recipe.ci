@@ -81,6 +81,7 @@ class CiRecipe:
         log.info('Repository Remote: %s' % commit_detail[0])
         log.info('Repository Branch: %s' % commit_detail[1])
         log.info('Project Folder: %s' % commit_detail[2])
+        #log.info('Commit Details: %s' % commit_detail[3])
 
         # preparing a log file to track the whole build process from
         # this step.
@@ -162,7 +163,7 @@ class CiRecipe:
         else:
             since = "%s.." % last_commit_id
         os.chdir(working_folder)
-        pull = pexpect.run('git pull')
+        pull = check_output(['git', 'pull'])
         git_log = 'git log %s %s .' % (format, since)
         ids = check_output(shlex.split(git_log))
 
@@ -183,14 +184,12 @@ class CiRecipe:
 
         log_option = '--name-only --format=%h -1'
         os.chdir(working_folder)
-        remote = pexpect.run('git remote -v')
-        branch = pexpect.run('git branch')
+        remote = check_output(['git', 'remote', '-v'])
+        branch = check_output(['git', 'branch'])
         git_log = 'git log %s %s' % (log_option, commit_id)
-        git_log = ['git', 'log', '--name-only', '--format=%h', 
-                   '-1', "%s" % commit_id]
-        changeset = check_output(git_log)
-        name_status = pexpect.run('git log --name-status -l %s' %
-                                  commit_id)
+        changeset = check_output(shlex.split(git_log))
+        git_log = 'git log --name-status -1 %s' % commit_id
+        name_status = check_output(shlex.split(git_log))
 
         # get the remote url:
         remote = remote.splitlines()[0]
@@ -204,7 +203,7 @@ class CiRecipe:
 
         return (remote, branch, subfolder, name_status)
 
-    def call_cmd(self, cmd, separator='-', logging=True):
+    def pexpect_call_cmd(self, cmd, separator='-', logging=True):
         """utility method to log and execute a script
         """
 
@@ -228,7 +227,7 @@ class CiRecipe:
         # return the exit code.
         return code
 
-    def check_call_cmd(self, cmd, separator='-', logging=True):
+    def call_cmd(self, cmd, separator='-', logging=True):
         """utility method to log and execute a script
         """
         if(logging):
