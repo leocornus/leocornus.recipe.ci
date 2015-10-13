@@ -14,6 +14,7 @@ try:
     import ConfigParser as configparser
 except ImportError:
     import configparser
+from ansi2html import Ansi2HTMLConverter
 
 __author__ = "Sean Chen"
 __email__ = "sean.chen@leocorn.com"
@@ -100,13 +101,11 @@ class CiRecipe:
 
         # convert build log to html  
         # This depends on aha
-        cat = Popen(['cat', build_log_file], stdout=PIPE)
-        html_log = check_output(['aha', '-b', '--no-header'], stdin=cat.stdout)
-        # replace white space to &nbsp; to keep the format on wiki page
-        html_log = html_log.replace('  ', '&nbsp;&nbsp;')
         log.info('Convert build log to HTML.')
-        log_file = open(build_log_file)
-        html_log = log_file.read()
+        conv = Ansi2HTMLConverter(inline=True, markup_lines=True)
+        log_file = open(build_log_file, 'rb')
+        html_log = log_file.read().decode('utf-8')
+        html_log = conv.convert(html_log, full=False)
 
         # save the html as a wiki page
         page_values = {

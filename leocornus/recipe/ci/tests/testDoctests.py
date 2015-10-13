@@ -23,6 +23,7 @@ def setUp(test):
     install('pexpect', test)
     install('mwclient', test)
     install('requests', test)
+    install('ansi2html', test)
     install('six', test)
 
 def test_suite():

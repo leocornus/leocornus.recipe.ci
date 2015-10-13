@@ -48,6 +48,7 @@ setup(
       'mwclient',
       'requests',
       'pexpect',
+      'ansi2html',
       'six'],
     extras_require={
       'test' : ['zope.testing'],
